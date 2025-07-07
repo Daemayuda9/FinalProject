@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Data - Universitas Amikom Yogyakarta</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* CSS Umum untuk Dashboard dan Sidebar (sama seperti dashboard.html) */
+        :root {
+            --primary-purple: #8A2BE2;
+            --light-purple: #E0BBE4;
+            --text-dark: #333;
+            --text-light: #f8f8f8;
+            --grey-background: #f8f8f8;
+            --input-background: #f0f0f0;
+            --button-yellow: #FFD700;
+            --sidebar-width: 250px;
+            --sidebar-width-collapsed: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--grey-background);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .top-bar {
+            background-color: var(--primary-purple);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            height: 60px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+        .top-bar-content {
+            display: flex;
+            align-items: center;
+            margin-left: 60px;
+            transition: margin-left 0.3s ease;
+        }
+        .top-bar .top-logo {
+            height: 40px;
+            margin-right: 15px;
+        }
+        .top-bar .top-text {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            margin-right: 20px;
+            padding: 5px;
+            transition: transform 0.3s ease;
+            position: absolute;
+            left: 20px;
+            z-index: 1001;
+        }
+        .sidebar-toggle:hover {
+            transform: scale(1.1);
+        }
+        .dashboard-container {
+            display: flex;
+            flex-grow: 1;
+            margin-top: 60px;
+            transition: margin-left 0.3s ease;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--primary-purple);
+            color: var(--text-light);
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+            transition: transform 0.3s ease, width 0.3s ease, padding 0.3s ease;
+        }
+        .sidebar.collapsed {
+            width: var(--sidebar-width-collapsed);
+            transform: translateX(-100%);
+            padding: 0;
+        }
+        .sidebar.collapsed .profile-section,
+        .sidebar.collapsed .main-nav,
+        .sidebar.collapsed .logout-btn {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.1s ease, visibility 0.1s ease;
+        }
+        .profile-section {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%;
+        }
+        .profile-pic-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto 15px;
+            cursor: pointer;
+            display: block;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+        }
+        .profile-pic-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .profile-pic-wrapper .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .profile-pic-wrapper:hover .overlay {
+            opacity: 1;
+        }
+        .profile-pic-wrapper .overlay i {
+            color: white;
+            font-size: 24px;
+        }
+        .profile-info .profile-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+            color: white;
+        }
+        .profile-info .profile-nim {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            margin: 5px 0 0;
+        }
+        .main-nav {
+            width: 100%;
+            flex-grow: 1;
+        }
+        .main-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .main-nav .nav-item {
+            margin-bottom: 10px;
+        }
+        .main-nav .nav-item a {
+            display: flex;
+            align-items: center;
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 12px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .main-nav .nav-item a i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        .main-nav .nav-item a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .main-nav .nav-item.active a {
+            background-color: rgba(255, 255, 255, 0.3);
+            font-weight: bold;
+        }
+        .logout-btn {
+            width: calc(100% - 30px);
+            padding: 12px;
+            background-color: var(--button-yellow);
+            color: var(--text-dark);
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: background-color 0.3s ease;
+        }
+        .logout-btn:hover {
+            background-color: #e6c200;
+        }
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+            flex-grow: 1;
+            background-color: var(--grey-background);
+            width: calc(100% - var(--sidebar-width));
+            transition: margin-left 0.3s ease, width 0.3s ease;
+        }
+        .main-content.expanded {
+            margin-left: var(--sidebar-width-collapsed);
+            width: 100%;
+        }
+        .main-content h2 {
+            color: var(--text-dark);
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: normal;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+            padding-bottom: 15px;
+        }
+
+        /* View Data (Visi & Misi) Specific Styles */
+        .visi-misi-section {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .visi-misi-section h3 {
+            color: var(--primary-purple);
+            font-size: 22px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .visi-misi-section .visi-container,
+        .visi-misi-section .misi-container {
+            background-color: var(--light-purple);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .visi-misi-section .visi-container h4,
+        .visi-misi-section .misi-container h4 {
+            color: var(--primary-purple);
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .visi-misi-section .visi-container p,
+        .visi-misi-section .misi-container ul {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-dark);
+        }
+
+        .visi-misi-section .misi-container ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .visi-misi-section .misi-container ul li {
+            margin-bottom: 5px;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            :root {
+                --sidebar-width: 200px;
+            }
+            .sidebar {
+                width: var(--sidebar-width);
+            }
+            .main-content {
+                margin-left: var(--sidebar-width);
+                width: calc(100% - var(--sidebar-width));
+            }
+            .top-bar .top-text {
+                font-size: 18px;
+            }
+            .main-content h2 {
+                font-size: 24px;
+            }
+            .visi-misi-section h3 {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --sidebar-width: 250px;
+            }
+            .dashboard-container {
+                flex-direction: column;
+            }
+            .top-bar {
+                height: 50px;
+                padding: 8px 15px;
+            }
+            .top-bar .top-logo {
+                height: 35px;
+                margin-left: 50px;
+            }
+            .top-bar .top-text {
+                font-size: 16px;
+            }
+            .sidebar-toggle {
+                left: 15px;
+            }
+            .sidebar {
+                position: fixed;
+                width: var(--sidebar-width);
+                height: calc(100vh - 50px);
+                top: 50px;
+                transform: translateX(-100%);
+                padding: 20px;
+                box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+            }
+            .sidebar:not(.collapsed) {
+                transform: translateX(0%);
+            }
+            .sidebar.collapsed .profile-section,
+            .sidebar.collapsed .main-nav,
+            .sidebar.collapsed .logout-btn {
+                opacity: 0;
+                visibility: hidden;
+            }
+            .sidebar:not(.collapsed) .profile-section,
+            .sidebar:not(.collapsed) .main-nav,
+            .sidebar:not(.collapsed) .logout-btn {
+                opacity: 1;
+                visibility: visible;
+                transition: opacity 0.5s ease 0.3s, visibility 0.5s ease 0.3s;
+            }
+            .top-bar-content {
+                margin-left: 50px;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+                width: 100%;
+            }
+            .visi-misi-section h3 {
+                font-size: 18px;
+            }
+            .visi-misi-section .visi-container p,
+            .visi-misi-section .misi-container ul li {
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .top-bar .top-text {
+                font-size: 14px;
+            }
+            .profile-section {
+                flex-direction: column;
+                align-items: center;
+                margin-right: 0;
+            }
+            .main-nav .nav-item {
+                flex: 1 1 45%;
+                text-align: center;
+            }
+            .main-nav .nav-item a {
+                justify-content: center;
+            }
+            .visi-misi-section .visi-container p,
+            .visi-misi-section .misi-container ul li {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <button id="sidebarToggle" class="sidebar-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="top-bar-content">
+            <img src="logo.png" alt="Amikom Logo" class="top-logo">
+            <span class="top-text">UNIVERSITAS AMIKOM YOGYAKARTA</span>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="profile-section">
+                <input type="file" id="profile-upload" accept="image/*" style="display: none;">
+                <label for="profile-upload" class="profile-pic-wrapper">
+                    <img id="profile-pic" src="https://via.placeholder.com/100x100?text=Profile" alt="Profile Picture">
+                    <div class="overlay">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                </label>
+                <div class="profile-info">
+                    <p class="profile-name">Darmayuda Sinung Prabowo</p>
+                    <p class="profile-nim">24.01.5121</p>
+                </div>
+            </div>
+
+            <nav class="main-nav">
+                <ul>
+                    <li class="nav-item">
+                        <a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="info_magang.html"><i class="fas fa-info-circle"></i> Info Magang</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="pendaftaran_magang.html"><i class="fas fa-file-alt"></i> Pendaftaran Magang</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="approval_magang.html"><i class="fas fa-check-circle"></i> Approval Magang</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="bimbingan.html"><i class="fas fa-chalkboard-teacher"></i> Bimbingan</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="laporan_magang.html"><i class="fas fa-book"></i> Laporan Magang</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="nilai.html"><i class="fas fa-star"></i> Nilai</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="cetak_sertifikat.html"><i class="fas fa-certificate"></i> Cetak Sertifikat</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="view_data.html"><i class="fas fa-eye"></i> View Data</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <button class="logout-btn" id="logoutBtn">LOGOUT</button>
+        </aside>
+
+        <main class="main-content" id="mainContent">
+            <h2>VIEW DATA UNTUK PRODI</h2>
+            <div class="visi-misi-section">
+                <h3>VISI & MISI D3 TEKNIK INFORMATIKA</h3>
+                <div class="visi-container">
+                    <h4>VISI Program Studi D3 Teknik Informatika</h4>
+                    <p>Tahun 2030 menjadi Program Studi Teknik Informatika Kelas Dunia yang Unggul dalam Bidang Web Development, Computer Network, dan 2D Animation yang berbasis enterpreneurship.</p>
+                </div>
+                <div class="misi-container">
+                    <h4>MISI Program Studi D3 Teknik Informatika</h4>
+                    <ul>
+                        <li>Menyelenggarakan pendidikan yang berkualitas di bidang Web Development, Computer Network, dan 2D Animation yang berbasis enterpreneurship.</li>
+                        <li>Melaksanakan penelitian dan pengembangan di bidang Web Development, Computer Network, dan 2D Animation yang memberikan kontribusi pada ilmu pengetahuan dan teknologi.</li>
+                        <li>Melaksanakan pengabdian kepada masyarakat di bidang Web Development, Computer Network, dan 2D Animation untuk meningkatkan kualitas hidup masyarakat.</li>
+                        <li>Mengembangkan jejaring kerjasama dengan industri dan komunitas untuk meningkatkan relevansi kurikulum dan peluang karir mahasiswa.</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // JavaScript untuk ganti foto profil
+        document.getElementById('profile-upload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profile-pic').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // JavaScript untuk toggle sidebar
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const topBarContent = document.querySelector('.top-bar-content');
+
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            if (sidebar.classList.contains('collapsed')) {
+                topBarContent.style.marginLeft = '0';
+            } else {
+                if (window.innerWidth > 768) {
+                     topBarContent.style.marginLeft = '60px';
+                }
+            }
+        });
+
+        // Menangani lebar konten top-bar saat awal dimuat (jika sidebar default collapsed di mobile)
+        window.addEventListener('load', function() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+                topBarContent.style.marginLeft = '0';
+            } else {
+                topBarContent.style.marginLeft = '60px';
+            }
+        });
+
+        // JavaScript untuk tombol Logout
+        const logoutBtn = document.getElementById('logoutBtn');
+        logoutBtn.addEventListener('click', function() {
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>
